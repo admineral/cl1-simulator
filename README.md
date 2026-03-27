@@ -1,46 +1,48 @@
 # CodexOne · CL1 Simulator
 
-Next.js-Frontend und lokale APIs für einen **CL1-orientierten MEA-Simulator**: Tick-Loops, synthetische Spike-Ausgabe, Stimulation und Recording — zum Entwickeln und Testen ohne Hardware.
+A Next.js front end and local APIs for a **CL1-style MEA simulator**: tick loops, synthetic spike output, stimulation, and recording — for building and testing without hardware.
 
-Der **Dashboard-Aufbau** ist in [`docs/PRD-dashboard-layout.md`](docs/PRD-dashboard-layout.md) beschrieben.
+**Development:** This repository was programmed primarily with [**Cursor Composer 2**](https://cursor.com) using **fully lazy prompting** — short, low-effort prompts with little up-front spec — mostly to get a feel for how the model behaves in practice. Human direction, review, and integration remain the owner’s responsibility.
 
-## Was drin ist
+Dashboard **layout and UX** are specified in [`docs/PRD-dashboard-layout.md`](docs/PRD-dashboard-layout.md).
 
-| Teil | Beschreibung |
-|------|----------------|
-| **Next.js-App** | Dashboard + Route-Handler unter `app/api/simulator/*` |
-| **TS-Mock** | In-Process-Simulator (`lib/simulator/`) — vom Dashboard und den APIs genutzt |
-| **Python `cl_sim`** | Optionaler CL-kompatibler Dienst (`cl.open()`), siehe [`docs/python-cl-simulator.md`](docs/python-cl-simulator.md) |
+## What’s included
 
-### CL1-Referenz (Konzepte, nicht nur dieser Mock)
+| Piece | Description |
+|--------|-------------|
+| **Next.js app** | Dashboard + route handlers under `app/api/simulator/*` |
+| **TS mock** | In-process simulator (`lib/simulator/`) used by the dashboard and APIs |
+| **Python `cl_sim`** | Optional CL-compatible runtime (`cl.open()`); see [`docs/python-cl-simulator.md`](docs/python-cl-simulator.md) |
 
-- [`docs/CL1-model-patterns.md`](docs/CL1-model-patterns.md) — Baselines, SFE, Readout-Ablations, Feedback, hardwarebewusstes Training  
-- [`docs/CL1-operations-patterns.md`](docs/CL1-operations-patterns.md) — Ports, Control vs. Data Plane, Recording, Observability  
-- [`docs/CL1-udp-protocol.md`](docs/CL1-udp-protocol.md) — Channel-Mask, Validierung, Beispiel-Binary-Packets, Timing  
+### CL1 reference material (concepts beyond this mock)
 
-### In-Repo CL1-Mock (TypeScript)
+- [`docs/CL1-model-patterns.md`](docs/CL1-model-patterns.md) — baselines, SFE, readout ablations, feedback, hardware-aware training  
+- [`docs/CL1-operations-patterns.md`](docs/CL1-operations-patterns.md) — ports, control vs. data plane, recording, observability  
+- [`docs/CL1-udp-protocol.md`](docs/CL1-udp-protocol.md) — channel mask, validation, example binary packets, timing  
 
-- [`lib/simulator/cl1-constants.ts`](lib/simulator/cl1-constants.ts) — 64 Elektroden, Dead-Channel-Mask `{0,4,7,56,63}`, 59 stimmbare IDs, Spike-Normalisierung `clamp / 35`  
-- [`lib/simulator/packets.ts`](lib/simulator/packets.ts) — `packStimPacket` / `packSpikePacket` (520 B / 264 B), abgestimmt mit [`scripts/cl1_multiport_protocol_helper.py`](scripts/cl1_multiport_protocol_helper.py)  
-- [`lib/simulator/core.ts`](lib/simulator/core.ts) — Tick-Loop füllt **`cl1`-Frames** (Freq/µA-Arrays + Spike-Counts); Stimulation auf Dead-Channels wird abgewiesen  
+### In-repo CL1 mock (TypeScript)
 
-Zusätzliche **Python-Hilfs-Skripte**: [`scripts/README.md`](scripts/README.md). Menschenlesbare Referenzkopien: [`references/`](references/).
+- [`lib/simulator/cl1-constants.ts`](lib/simulator/cl1-constants.ts) — 64 electrodes, dead-channel mask `{0,4,7,56,63}`, 59 stimulable IDs, spike normalizer `clamp / 35`  
+- [`lib/simulator/packets.ts`](lib/simulator/packets.ts) — `packStimPacket` / `packSpikePacket` (520 B / 264 B), aligned with [`scripts/cl1_multiport_protocol_helper.py`](scripts/cl1_multiport_protocol_helper.py)  
+- [`lib/simulator/core.ts`](lib/simulator/core.ts) — tick loop fills per-tick **`cl1`** frames (freq/µA arrays + spike counts); stimulation on dead channels is rejected  
 
-## Voraussetzungen
+Additional **Python helpers** (CLI / offline checks): [`scripts/README.md`](scripts/README.md). Human-readable reference copies: [`references/`](references/).
 
-- **Node.js** (für `npm install` / Next 16)  
-- **Python ≥ 3.10** nur für `cl_sim` / `npm run python:service`  
+## Requirements
 
-## Schnellstart
+- **Node.js** (for `npm install` / Next 16)  
+- **Python ≥ 3.10 — only for `cl_sim` / `npm run python:service`  
+
+## Quick start
 
 ```bash
 npm install
 npm run dev
 ```
 
-App: **http://localhost:3000**
+Open **http://localhost:3000**.
 
-### Python-Backend statt TS-Mock
+### Python backend instead of the TS mock
 
 ```bash
 # Terminal 1
@@ -50,7 +52,7 @@ npm run python:service
 CL_SIM_BACKEND=python npm run dev
 ```
 
-Standard-Ziel des Proxys: `http://127.0.0.1:8765` — überschreibbar mit `CL_SIM_PYTHON_URL`.
+By default the Next.js routes proxy to `http://127.0.0.1:8765`. Override with `CL_SIM_PYTHON_URL` if needed.
 
 ## Tests
 
@@ -58,17 +60,17 @@ Standard-Ziel des Proxys: `http://127.0.0.1:8765` — überschreibbar mit `CL_SI
 npm test
 ```
 
-Vitest (u. a. STIM/SPIKE Round-Trips in `lib/simulator/packets.test.ts`).
+Runs Vitest (e.g. binary STIM/SPIKE round-trips in `lib/simulator/packets.test.ts`).
 
-## API (Kurzüberblick)
+## API overview
 
 ### `GET /api/simulator`
 
-Snapshot, Metriken und **`cl1`**-Block: letzter Tick — 64-Kanal-Frequenzen, Amplituden (µA), Roh-Spike-Summen, normalisierte Counts.
+Returns the current simulator snapshot, metrics, and a **`cl1`** block: last-tick 64-channel frequencies, amplitudes (µA), raw spike totals, and normalized counts.
 
 ### `POST /api/simulator/control`
 
-Simulator steuern.
+Control the simulator loop.
 
 ```json
 {
@@ -78,26 +80,26 @@ Simulator steuern.
 }
 ```
 
-`action`: `start` · `stop` · `reset` · `tick`
+Supported `action` values: `start`, `stop`, `reset`, `tick`.
 
 ### `GET /api/simulator/device`
 
-Letzter **`cl1`**-Frame plus **base64**-STIM (520 B) und SPIKE (264 B) für Integrationstests ohne UDP.
+Returns the same last-tick **`cl1`** frame plus **base64** STIM (520 B) and SPIKE (264 B) blobs for integration tests without UDP.
 
 ### `POST /api/simulator/recording`
 
-Mock-Recording: ein **JSON-serialisierbarer Frame pro Tick**.
+Mock **recording lifecycle**: capture one **JSON-serializable frame per tick** (64-ch spikes + STIM arrays) while active.
 
 ```json
 { "action": "start", "session": "my-run" }
 { "action": "stop", "persist": true }
 ```
 
-Mit `persist: true` → Dateien unter `recordings/` (gitignored). Antwort bei **stop** kann `recordingExport.savedPath` enthalten.
+With `persist: true`, frames are written under `recordings/` (gitignored). The JSON response from **stop** may include `recordingExport.savedPath`.
 
 ### `POST /api/simulator/feedback`
 
-Feedback-Warteschlange (getrennt vom Haupt-STIM-UI), wirkt **nächster Tick**: merged Hz/µA in die STIM-Arrays; **`interrupt`** leert pending Elektroden-STIMs zuerst.
+Typed **feedback** queue (separate from the main MEA stim UI), applied on the **next tick**: merges Hz/µA into the STIM arrays; **`interrupt`** clears pending electrode stims first.
 
 ```json
 {
@@ -113,7 +115,7 @@ Feedback-Warteschlange (getrennt vom Haupt-STIM-UI), wirkt **nächster Tick**: m
 
 ### `POST /api/simulator/stim`
 
-Nur **stimmbare** Kanäle (`1–62` außer `4, 7, 56`). Dead-Channels → `400`.
+Queue stimulation on **stimulable** channels only (`1–62` except `4, 7, 56`). Dead channels return `400`.
 
 ```json
 {
@@ -124,13 +126,13 @@ Nur **stimmbare** Kanäle (`1–62` außer `4, 7, 56`). Dead-Channels → `400`.
 }
 ```
 
-## Projektstruktur (grob)
+## Repository layout
 
 ```
-app/          # Next.js App Router, Seite + API-Routen
+app/          # Next.js App Router, page + API routes
 components/   # UI
-lib/simulator/# TS-Simulator, Pakete, Konstanten
-cl_sim/       # Python-Paket (pyproject: cl-sim)
-docs/         # PRD, CL1-Notizen, Python-Simulator-Doku
-scripts/      # CLI / Protokoll-Helfer
+lib/simulator/# TS simulator, packets, constants
+cl_sim/       # Python package (pyproject name: cl-sim)
+docs/         # PRD, CL1 notes, Python simulator doc
+scripts/      # CLI / protocol helpers
 ```

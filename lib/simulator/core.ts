@@ -6,6 +6,7 @@ import {
   assertStimmableChannel,
   normalizeSpikeCountsForModel
 } from "@/lib/simulator/cl1-constants";
+import { isPollDrivenSimulatorHost } from "@/lib/simulator/host-runtime";
 import {
   ActivityPoint,
   Cl1DeviceState,
@@ -263,7 +264,9 @@ class SimulatorCore {
       if (shouldReschedule && this.timer) {
         clearTimeout(this.timer);
         this.timer = null;
-        this.scheduleNextTick();
+        if (!isPollDrivenSimulatorHost()) {
+          this.scheduleNextTick();
+        }
       }
 
       return this.getSnapshot();
@@ -271,7 +274,9 @@ class SimulatorCore {
 
     this.running = true;
     this.lastUpdated = new Date().toISOString();
-    this.scheduleNextTick();
+    if (!isPollDrivenSimulatorHost()) {
+      this.scheduleNextTick();
+    }
     return this.getSnapshot();
   }
 
@@ -309,6 +314,13 @@ class SimulatorCore {
 
   timestamp() {
     return this.deviceTimestampUs;
+  }
+
+  /** Advance one tick when the loop is running but host-driven polling replaces timers (e.g. Vercel). */
+  pollDriveTickIfRunning() {
+    if (this.running) {
+      this.tickOnce();
+    }
   }
 
   tickOnce() {

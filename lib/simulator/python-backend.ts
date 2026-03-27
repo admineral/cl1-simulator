@@ -1,7 +1,26 @@
 import { NextResponse } from "next/server";
 
+function isLocalUrl(url: string) {
+  try {
+    const u = new URL(url);
+    return u.hostname === "127.0.0.1" || u.hostname === "localhost" || u.hostname === "::1";
+  } catch {
+    return true;
+  }
+}
+
 function isPythonBackendEnabled() {
-  return process.env.CL_SIM_BACKEND === "python";
+  if (process.env.CL_SIM_BACKEND !== "python") {
+    return false;
+  }
+  // Vercel (and similar) cannot reach a laptop-local Python service unless you point at a public URL.
+  if (process.env.VERCEL === "1") {
+    const url = process.env.CL_SIM_PYTHON_URL ?? "http://127.0.0.1:8765";
+    if (isLocalUrl(url)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function pythonBackendBaseUrl() {

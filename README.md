@@ -54,6 +54,10 @@ CL_SIM_BACKEND=python npm run dev
 
 By default the Next.js routes proxy to `http://127.0.0.1:8765`. Override with `CL_SIM_PYTHON_URL` if needed.
 
+### Vercel / serverless preview (TypeScript mock only)
+
+Deploy like any Next.js app: **no Python runtime required**. The dashboard uses the in-repo TypeScript simulator via `app/api/simulator/*`. On Vercel, `VERCEL=1` is set automatically: the tick loop is **poll-driven** (each `GET /api/simulator` advances one tick while the loop is running) instead of `setTimeout`, so the UI keeps moving after deploy. Simulator memory still lives in one serverless instance at a time, so treat preview state as ephemeral. To use the Python backend from the cloud you must set `CL_SIM_BACKEND=python` and a **public** `CL_SIM_PYTHON_URL` (not localhost). Recording export with `persist: true` returns frames in `recordingExport.inlineFrames` when the host is serverless (no repo `recordings/` folder).
+
 ## Tests
 
 ```bash

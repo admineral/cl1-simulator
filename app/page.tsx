@@ -438,7 +438,12 @@ export default function HomePage() {
       });
       const data = (await raw.json()) as SimulatorResponse & {
         error?: string;
-        recordingExport?: { savedPath?: string; frameCount: number };
+        recordingExport?: {
+          savedPath?: string;
+          frameCount: number;
+          note?: string;
+          inlineFrames?: unknown[];
+        };
       };
       if (!raw.ok) {
         throw new Error(data.error ?? `Request failed with ${raw.status}`);
@@ -447,10 +452,15 @@ export default function HomePage() {
       applySnapshot(rest as SimulatorResponse, false);
       setError(null);
       const n = _exp?.frameCount ?? 0;
+      const inlineOk = Boolean(_exp?.inlineFrames?.length);
       pushControlLog(
         persist && _exp?.savedPath
           ? `recording_stopped · exported ${n} frames → ${_exp.savedPath}`
-          : `recording_stopped · ${n} frames dropped (RAM cleared)`
+          : persist && inlineOk
+            ? `recording_stopped · ${n} frames in response (serverless inline export)`
+            : persist && _exp?.note
+              ? `recording_stopped · ${n} frames · ${_exp.note}`
+              : `recording_stopped · ${n} frames dropped (RAM cleared)`
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Recording stop failed.");

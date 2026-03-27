@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { simulator } from "@/lib/simulator/core";
+import { isPollDrivenSimulatorHost } from "@/lib/simulator/host-runtime";
 import { proxyPythonSimulator, usePythonBackend } from "@/lib/simulator/python-backend";
 import { summarizeActivity } from "@/lib/simulator/serialization";
 
@@ -38,29 +39,51 @@ export async function POST(request: NextRequest) {
       const summary = summarizeActivity(simulator.getSnapshot());
 
       let savedPath: string | undefined;
+      let inlineFrames: typeof result.frames | undefined;
+      let exportNote: string | undefined;
+
       if (body.persist && result.frames.length > 0) {
-        const dir = path.join(process.cwd(), "recordings");
-        await mkdir(dir, { recursive: true });
-        const base = safeBasename(result.session ?? "export");
-        const file = path.join(dir, `${base}-${Date.now()}.json`);
-        await writeFile(
-          file,
-          JSON.stringify(
-            {
-              session: result.session,
-              exportedAt: new Date().toISOString(),
-              frameCount: result.frames.length,
-              frames: result.frames
-            },
-            null,
-            2
-          ),
-          "utf8"
-        );
-        savedPath = file;
+        if (isPollDrivenSimulatorHost()) {
+          const maxInline = 1500;
+          if (result.frames.length <= maxInline) {
+            inlineFrames = result.frames;
+            exportNote =
+              "Serverless preview: frames are included in this response (recordingExport.inlineFrames). No file is written on the host.";
+          } else {
+            exportNote = `Serverless preview: ${result.frames.length} frames exceeds inline limit (${maxInline}). Stop the recording sooner or export from local dev.`;
+          }
+        } else {
+          const dir = path.join(process.cwd(), "recordings");
+          await mkdir(dir, { recursive: true });
+          const base = safeBasename(result.session ?? "export");
+          const file = path.join(dir, `${base}-${Date.now()}.json`);
+          await writeFile(
+            file,
+            JSON.stringify(
+              {
+                session: result.session,
+                exportedAt: new Date().toISOString(),
+                frameCount: result.frames.length,
+                frames: result.frames
+              },
+              null,
+              2
+            ),
+            "utf8"
+          );
+          savedPath = file;
+        }
       }
 
-      return NextResponse.json({ ...summary, recordingExport: { savedPath, frameCount: result.frames.length } });
+      return NextResponse.json({
+        ...summary,
+        recordingExport: {
+          savedPath,
+          frameCount: result.frames.length,
+          ...(inlineFrames ? { inlineFrames } : {}),
+          ...(exportNote ? { note: exportNote } : {})
+        }
+      });
     }
 
     return NextResponse.json({ error: "action must be start or stop." }, { status: 400 });

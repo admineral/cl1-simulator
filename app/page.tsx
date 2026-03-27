@@ -507,40 +507,75 @@ export default function HomePage() {
     <main className="cortex-app">
       <header className="cortex-hero">
         <div>
-          <p className="cortex-kicker">Cortical labs · in vitro neural compute</p>
-          <h1 className="cortex-title">CL1 interface loop</h1>
+          <p className="cortex-kicker">CodexOne · CL1-style lab simulator</p>
+          <h1 className="cortex-title">Dashboard + mock tissue</h1>
           <p className="cortex-lede">
-            Timeline-first simulator dashboard with CL-compatible runtime semantics up top and the bridge/settings stack underneath.
+            Explore spikes, MEA stimulation, CL1 frames, recording, and feedback in software. Same API routes power local dev and
+            serverless previews—no dish required.
           </p>
         </div>
         <div className="cortex-hero__status">
-          <Badge variant={snapshot.running ? "success" : "outline"}>
-            {snapshot.running ? "Loop live" : "Idle"}
-          </Badge>
-          <Badge variant="outline">t = {snapshot.tick}</Badge>
-          <Badge variant="outline">{snapshot.deviceTimestampUs} μs</Badge>
-          <Badge variant="outline">
-            {snapshot.channelCount} ch · {snapshot.metrics.stimmableChannels} stim
-          </Badge>
+          <div
+            className={`cortex-hero__stat${snapshot.running ? " cortex-hero__stat--live" : ""}`}
+            title="The mock advances in discrete ticks while running (or on each refresh when hosted serverless)."
+          >
+            <span className="cortex-hero__stat-label">Run state</span>
+            <span className="cortex-hero__stat-value">
+              {snapshot.running ? "Live · ticks advancing" : "Idle · press Start"}
+            </span>
+          </div>
+          <div className="cortex-hero__stat" title="Integer simulation step; not wall-clock seconds.">
+            <span className="cortex-hero__stat-label">Tick index</span>
+            <span className="cortex-hero__stat-value">{snapshot.tick}</span>
+          </div>
+          <div
+            className="cortex-hero__stat"
+            title="Synthetic lab clock in microseconds; grows with tick interval × step count."
+          >
+            <span className="cortex-hero__stat-label">Device time</span>
+            <span className="cortex-hero__stat-value">{snapshot.deviceTimestampUs.toLocaleString()} μs</span>
+          </div>
+          <div
+            className="cortex-hero__stat"
+            title="Full bridge width vs channels that accept stimulation in this CL1 mock (dead channels masked)."
+          >
+            <span className="cortex-hero__stat-label">MEA layout</span>
+            <span className="cortex-hero__stat-value">
+              {snapshot.channelCount} electrodes · {snapshot.metrics.stimmableChannels} stim-capable
+            </span>
+          </div>
         </div>
       </header>
 
       <div className="cortex-stage">
-        <section className="cortex-runtime-strip" aria-label="Runtime surface">
+        <section className="cortex-runtime-strip" aria-label="About this project">
           <div className="cortex-runtime-strip__card">
-            <span className="cortex-runtime-strip__label">Frontend</span>
-            <strong>Charts and neuron lattice lead the page</strong>
-            <p>Population activity, spike raster, and tissue state are now the first viewport after the hero.</p>
+            <span className="cortex-runtime-strip__label">What this is</span>
+            <strong>Software twin of a CL1-style dish experiment</strong>
+            <p>
+              CodexOne pairs this Next.js UI with <code className="cortex-inline-code">/api/simulator</code> routes and a TypeScript
+              neuron + electrode mock. You can script stimulation, watch synthetic spikes, capture recording frames, and inspect
+              CL1-shaped telemetry without hardware—or swap in optional Python <code className="cortex-inline-code">cl_sim</code>{" "}
+              locally for a <code className="cortex-inline-code">cl.open()</code>-style runtime.
+            </p>
           </div>
           <div className="cortex-runtime-strip__card">
-            <span className="cortex-runtime-strip__label">Official-Compatible</span>
-            <strong>`cl.open() → Neurons → loop()`</strong>
-            <p>The Python package follows the Cortical Labs API mental model and keeps one authoritative device timeline.</p>
+            <span className="cortex-runtime-strip__label">How it behaves</span>
+            <strong>One mock clock, queued stims, feedback on the next tick</strong>
+            <p>
+              The simulator steps a single device timeline: MEA pulses enter a queue, evoked and background spikes update 64-channel
+              counts, and CL1 STIM/SPIKE-style blobs stay aligned with the repo’s protocol notes. That makes the dashboard useful for
+              testing control loops, safety limits, and integrations before you touch a real rig.
+            </p>
           </div>
           <div className="cortex-runtime-strip__card">
-            <span className="cortex-runtime-strip__label">Project Conventions</span>
-            <strong>64-ch bridge, dead-mask, UDP helpers</strong>
-            <p>The dashboard still uses the repo’s local CL1 transport mock and labels those deployment rules separately.</p>
+            <span className="cortex-runtime-strip__label">Fidelity and tooling</span>
+            <strong>Dead-channel mask, stim rules, packet packers</strong>
+            <p>
+              Channel layout matches the project’s CL1 constants (including non-stim electrodes), and the same helpers back
+              integration tests and UDP-oriented scripts. What you see here is still a mock—labels and docs spell out where behaviour
+              is simplified versus production hardware.
+            </p>
           </div>
         </section>
 

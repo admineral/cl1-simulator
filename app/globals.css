@@ -132,14 +132,54 @@ textarea:disabled {
 .cortex-hero__status {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   justify-content: flex-end;
-  align-items: center;
+  align-items: stretch;
+}
+
+.cortex-hero__stat {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 200px;
+  padding: 7px 10px;
+  border-radius: calc(var(--radius-sm) + 2px);
+  border: 1px solid var(--line);
+  background: rgba(9, 14, 20, 0.72);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.cortex-hero__stat--live {
+  border-color: rgba(46, 228, 208, 0.35);
+  background: linear-gradient(135deg, rgba(46, 228, 208, 0.12), rgba(9, 14, 20, 0.88));
+}
+
+.cortex-hero__stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cortex-hero__stat-value {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  word-break: break-word;
 }
 
 @media (max-width: 840px) {
   .cortex-hero__status {
     justify-content: flex-start;
+  }
+
+  .cortex-hero__stat {
+    max-width: none;
+    flex: 1 1 140px;
   }
 }
 
@@ -407,6 +447,17 @@ textarea:disabled {
   font-size: 0.72rem;
   line-height: 1.42;
   color: var(--ink-dim);
+}
+
+.cortex-inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(46, 228, 208, 0.08);
+  border: 1px solid rgba(120, 175, 210, 0.22);
+  color: var(--accent-hot);
+  word-break: break-word;
 }
 
 .cortex-panel {

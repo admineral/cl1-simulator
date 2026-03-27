@@ -1,0 +1,8 @@
+.next
+node_modules
+npm-debug.log*
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.venv/
+recordings/

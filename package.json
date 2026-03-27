@@ -1,0 +1,28 @@
+{
+  "name": "cl1-simulator-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "python:service": "python3 -m cl_sim.service",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.11",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.23.0",
+    "eslint-config-next": "^16.0.0",
+    "typescript": "5.8.2",
+    "vitest": "^3.0.5"
+  }
+}
